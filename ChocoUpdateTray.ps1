@@ -4,13 +4,27 @@ $oldprocess = $(Get-WmiObject Win32_Process -Filter "Name='powershell.exe' AND C
 if($oldprocess.Handle){
      Stop-process -Id $oldprocess.Handle
 }
-
-$stdout_choco = $(choco outdated)
+$noReturn = $true
+$stdout_choco_raw = $(choco outdated)
+foreach($line in $stdout_choco_raw){
+    echo "hello: $line"
+    if($line -like "Chocolatey has determined*"){
+        $stdout_choco = $line
+        $noReturn = $False
+    }
+}
+if($noReturn){
+    # popup
+    [System.Windows.MessageBox]::Show('Cant find string in Choco outdated')
+    exit
+}
+$start = $stdout_choco.indexof('Chocolatey has determined') + 26
 if($stdout_choco -like "*Chocolatey has determined 0 package(s) are outdated.*"){
     exit
 }
 $start = $stdout_choco.indexof('Chocolatey has determined') + 26
-$end = $stdout_choco.indexof('package(s) are outdated.')
+$end = $stdout_choco.indexof('package(s) are outdated')
+$end = $stdout_choco.indexof('are outdated')
 $update_count = $stdout_choco.Substring($start,$end-$start).trim()
 
 $Current_Folder = split-path $MyInvocation.MyCommand.Path
@@ -77,6 +91,7 @@ $Menu_CMD.Add_Click({
      $window.Close()
      Stop-Process $pid
 })
+
 $Main_Tool_Icon.contextMenu.MenuItems.AddRange($Menu_CMD)
 $Main_Tool_Icon.contextMenu.MenuItems.AddRange($Menu_Exit)
 
