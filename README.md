@@ -7,3 +7,4 @@ Todo:
 - cleanup
 - show packages which are ready to update
 - maybe create official chocolatey package
+- (better) error handling
